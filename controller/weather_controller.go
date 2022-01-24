@@ -17,7 +17,7 @@ func (open *OpenWeatherMap) CurrentWeatherFromCity(city string) (*model.CurrentW
 		return nil, errors.New("No API keys present")
 	}
 
-	url := fmt.Sprintf("https://%s/data/2.5/weather?q=%s&appid=%s", open.APIURL, city, open.APIKEY)
+	url := fmt.Sprintf("https://%s/data/2.5/weather?q=%s&appid=%s&units=metric", open.APIURL, city, open.APIKEY)
 
 	body, err := helper.MakeApiRequest(url)
 	if err != nil {
