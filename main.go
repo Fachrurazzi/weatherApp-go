@@ -1,43 +1,53 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
-	"github.com/julienschmidt/httprouter"
+	"github.com/go-chi/chi/v5"
+	"github.com/joho/godotenv"
 	"log"
 	"net/http"
+	"os"
 	"weatherApp/controller"
+	"weatherApp/helper"
 	"weatherApp/model"
 )
 
 func main() {
-	router := httprouter.New()
+	router := chi.NewRouter()
 
-	var currentWeather *model.CurrentWeatherResponse
-	var err error
-	apikey := "6868edc853c17d3430fbfa9117d661a5"
-
-	owm := controller.OpenWeatherMap{
-		APIKEY: apikey,
+	errEnv := godotenv.Load()
+	if errEnv != nil {
+		log.Fatal("Error loading env file")
 	}
 
-	router.GET("/api/weather/:city", func(writer http.ResponseWriter, request *http.Request, params httprouter.Params) {
-		city := params.ByName("city")
+	owm := controller.OpenWeatherMap{
+		APIKEY: os.Getenv("API_KEY"),
+		APIURL: os.Getenv("API_URL"),
+	}
+	router.Get("/api/weather/{city}", func(writer http.ResponseWriter, request *http.Request) {
+		city := chi.URLParam(request, "city")
+		fmt.Fprint(writer, city)
+		var currentWeather *model.CurrentWeatherResponse
+		var err error
+
+		fmt.Fprint(writer, city)
 		currentWeather, err = owm.CurrentWeatherFromCity(city)
 		if err != nil {
 			log.Fatal(err)
 		}
-		bytes, _ := json.Marshal(currentWeather)
-		fmt.Fprint(writer, string(bytes))
+		webResponse := model.WebResponse{
+			Code:   200,
+			Status: "OK",
+			Data:   currentWeather,
+		}
+
+		helper.WriteToResponseBody(writer, webResponse)
+		//writer.Write(weather)
 	})
 
-	server := http.Server{
-		Addr:    "localhost:8080",
-		Handler: router,
-	}
-
-	err = server.ListenAndServe()
+	err := http.ListenAndServe(":8080", router)
 	if err != nil {
 		log.Fatal(err)
 	}
+
 }

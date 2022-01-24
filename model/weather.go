@@ -1,15 +1,8 @@
 package model
 
-type City struct {
-	Id   int    `json:"id"`
-	Name string `json:"name"`
-}
-
 type Weather struct {
-	Id          int    `json:"id"`
 	Main        string `json:"main"`
 	Description string `json:"description"`
-	Icon        string `json:"icon"`
 }
 
 type Main struct {
